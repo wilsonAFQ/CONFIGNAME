@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramienta de Nombres</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        .tab-container {
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: #ddd;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 5px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-area {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 10px;
+            font-family: inherit;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #clearBtn, #clearFormatBtn {
+            background-color: #e74c3c;
+        }
+
+        #clearBtn:hover, #clearFormatBtn:hover {
+            background-color: #c0392b;
+        }
+
+        #copyAllBtn, #exportExcelBtn {
+            background-color: #2ecc71;
+        }
+
+        #copyAllBtn:hover, #exportExcelBtn:hover {
+            background-color: #27ae60;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .name-result {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+
+        .valid {
+            background-color: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        .invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+
+        #resultStats, #formatStats {
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .status {
+            float: right;
+            font-weight: bold;
+        }
+
+        .original-name {
+            color: #666;
+            font-size: 0.9em;
+            display: block;
+            margin-top: 3px;
+            font-style: italic;
+        }
+
+        .word-count {
+            color: #6c757d;
+            font-size: 0.8em;
+            margin-top: 3px;
+        }
+
+        .button-group {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .modification {
+            color: #17a2b8;
+            font-size: 0.8em;
+            margin-top: 3px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Herramienta de Procesamiento de Nombres</h1>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="verify">Verificar Longitud</button>
+                <button class="tab-btn" data-tab="format">Formatear Nombres</button>
+            </div>
+            
+            <!-- Pestaña de Verificación -->
+            <div id="verify" class="tab-content active">
+                <p>Ingresa los nombres para verificar si tienen entre 45 y 60 caracteres</p>
+                
+                <div class="input-area">
+                    <textarea id="nameInput" placeholder="Ejemplo: Bombillo LED 100W, cable plano 2.5mm"></textarea>
+                    <button id="verifyBtn">Verificar Nombres</button>
+                    <button id="clearBtn">Limpiar</button>
+                </div>
+                
+                <div class="results">
+                    <h2>Resultados:</h2>
+                    <div id="resultStats"></div>
+                    <div id="resultDetails"></div>
+                </div>
+            </div>
+            
+            <!-- Pestaña de Formateo -->
+            <div id="format" class="tab-content">
+                <p>Ingresa los nombres para formatear (separar números/letras, capitalizar primera letra)</p>
+                
+                <div class="input-area">
+                    <textarea id="formatInput" placeholder="Ejemplo: BOMBILLO LED 100W, CABLEPLANO2.5MM, 12700Lm"></textarea>
+                    <button id="formatBtn">Formatear Nombres</button>
+                    <button id="clearFormatBtn">Limpiar</button>
+                </div>
+                
+                <div class="results">
+                    <h2>Nombres Formateados:</h2>
+                    <div id="formatStats"></div>
+                    <div id="formatDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variable global para almacenar los nombres formateados
+        let formattedNamesGlobal = [];
+        
+        // Lista de unidades de medida que deben mantenerse en minúsculas (solo las especificadas)
+        const unidadesMinusculas = [
+            // Longitud
+            'mm', 'cm', 'm', 'km',
+            // Área
+            'mm²', 'cm²', 'm²', 'km²',
+            // Volumen
+            'ml', 'cl', 'l',
+            // Peso
+            'mg', 'g', 'kg'
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos de la pestaña de verificación
+            const nameInput = document.getElementById('nameInput');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const resultStats = document.getElementById('resultStats');
+            const resultDetails = document.getElementById('resultDetails');
+            
+            // Elementos de la pestaña de formateo
+            const formatInput = document.getElementById('formatInput');
+            const formatBtn = document.getElementById('formatBtn');
+            const clearFormatBtn = document.getElementById('clearFormatBtn');
+            const formatStats = document.getElementById('formatStats');
+            const formatDetails = document.getElementById('formatDetails');
+            
+            // Tabs
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Manejo de pestañas
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.getAttribute('data-tab');
+                    
+                    // Actualizar botones de pestaña
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Actualizar contenido de pestaña
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Eventos para verificación
+            verifyBtn.addEventListener('click', verifyNames);
+            clearBtn.addEventListener('click', () => clearAll(nameInput, resultStats, resultDetails));
+            
+            // Eventos para formateo
+            formatBtn.addEventListener('click', formatNames);
+            clearFormatBtn.addEventListener('click', () => clearAll(formatInput, formatStats, formatDetails));
+            
+            // Atajos de teclado
+            nameInput.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    verifyNames();
+                }
+            });
+            
+            formatInput.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    formatNames();
+                }
+            });
+            
+            function verifyNames() {
+                const inputText = nameInput.value.trim();
+                if (!inputText) {
+                    alert('Por favor ingresa al menos un nombre');
+                    return;
+                }
+
+                let names = inputText.split(/[\n,]+/).map(name => name.trim()).filter(name => name !== '');
+
+                if (names.length === 0) {
+                    alert('No se encontraron nombres válidos');
+                    return;
+                }
+
+                resultDetails.innerHTML = '';
+                
+                let validCount = 0;
+                let invalidCount = 0;
+
+                names.forEach(name => {
+                    const length = name.length;
+                    const isValid = length >= 45 && length <= 60;
+                    
+                    if (isValid) validCount++;
+                    else invalidCount++;
+
+                    const resultElement = document.createElement('div');
+                    resultElement.className = `name-result ${isValid ? 'valid' : 'invalid'}`;
+                    resultElement.innerHTML = `
+                        <strong>${name}</strong> - ${length} caracteres
+                        <span class="status">${isValid ? '✅ VÁLIDO' : '❌ NO VÁLIDO'}</span>
+                    `;
+                    
+                    resultDetails.appendChild(resultElement);
+                });
+
+                resultStats.innerHTML = `
+                    Total nombres verificados: ${names.length}<br>
+                    Válidos (45-60 caracteres): <span class="valid-count">${validCount}</span><br>
+                    No válidos: <span class="invalid-count">${invalidCount}</span>
+                `;
+            }
+            
+            function formatNames() {
+                const inputText = formatInput.value.trim();
+                if (!inputText) {
+                    alert('Por favor ingresa al menos un nombre');
+                    return;
+                }
+
+                let names = inputText.split(/[\n,]+/).map(name => name.trim()).filter(name => name !== '');
+
+                if (names.length === 0) {
+                    alert('No se encontraron nombres válidos');
+                    return;
+                }
+
+                formatDetails.innerHTML = '';
+                
+                formattedNamesGlobal = names.map(originalName => {
+                    let modifications = [];
+                    let formattedName = originalName;
+                    
+                    // 1. Separar números y letras pegadas (ej: 100W -> 100 W)
+                    formattedName = formattedName.replace(/(\d+)([a-zA-ZáéíóúñÁÉÍÓÚÑ°µ²³]+)/g, function(match, nums, letters) {
+                        // Verificar si es una unidad que debe ir en minúsculas
+                        const lowerLetters = letters.toLowerCase();
+                        if (unidadesMinusculas.includes(lowerLetters)) {
+                            modifications.push(`Separado y unidad en minúsculas: ${match} → ${nums} ${lowerLetters}`);
+                            return nums + ' ' + lowerLetters;
+                        }
+                        modifications.push(`Separado: ${match} → ${nums} ${letters}`);
+                        return nums + ' ' + letters;
+                    });
+                    
+                    // 2. Separar letras y números pegados (ej: Lm12700 -> Lm 12700)
+                    formattedName = formattedName.replace(/([a-zA-ZáéíóúñÁÉÍÓÚÑ°µ²³]+)(\d+)/g, function(match, letters, nums) {
+                        // Verificar si las letras son una unidad que debe ir en minúsculas
+                        const lowerLetters = letters.toLowerCase();
+                        if (unidadesMinusculas.includes(lowerLetters)) {
+                            modifications.push(`Separado y unidad en minúsculas: ${match} → ${lowerLetters} ${nums}`);
+                            return lowerLetters + ' ' + nums;
+                        }
+                        modifications.push(`Separado: ${match} → ${letters} ${nums}`);
+                        return letters + ' ' + nums;
+                    });
+                    
+                    // 3. Convertir unidades específicas a minúsculas (standalone)
+                    formattedName = formattedName.replace(new RegExp(`\\b(${unidadesMinusculas.join('|')})\\b`, 'gi'), function(match) {
+                        if (match !== match.toLowerCase()) {
+                            modifications.push(`Unidad convertida a minúsculas: ${match} → ${match.toLowerCase()}`);
+                            return match.toLowerCase();
+                        }
+                        return match;
+                    });
+                    
+                    // 4. Capitalizar palabras (incluyendo las recién separadas), excepto unidades de medida
+                    formattedName = formattedName.split(/\s+/).map(word => {
+                        // Verificar si es una unidad que debe ir en minúsculas
+                        const lowerWord = word.toLowerCase();
+                        if (unidadesMinusculas.includes(lowerWord)) {
+                            return lowerWord;
+                        }
+                        
+                        // Capitalizar palabras normales
+                        if (/^[a-záéíóúñ]/.test(word)) {
+                            return word.charAt(0).toUpperCase() + word.slice(1);
+                        }
+                        
+                        // Para palabras completamente en mayúsculas (excepto unidades)
+                        if (word === word.toUpperCase() && word.length > 1) {
+                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                        }
+                        
+                        return word;
+                    }).join(' ');
+                    
+                    return {
+                        original: originalName,
+                        formatted: formattedName,
+                        modifications: modifications.join('; ')
+                    };
+                });
+
+                formattedNamesGlobal.forEach((item, index) => {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'name-result';
+                    resultElement.innerHTML = `
+                        <strong>${item.formatted}</strong>
+                        <span class="original-name">Original: ${item.original}</span>
+                        ${item.modifications ? `<span class="modification">Modificaciones: ${item.modifications}</span>` : ''}
+                    `;
+                    
+                    formatDetails.appendChild(resultElement);
+                });
+
+                formatStats.innerHTML = `
+                    Total nombres formateados: ${names.length}<br>
+                    <div class="button-group">
+                        <button id="copyAllBtn">Copiar al portapapeles</button>
+                        <button id="exportExcelBtn">Exportar a Excel</button>
+                    </div>
+                `;
+                
+                // Agregar evento al botón de copiar
+                document.getElementById('copyAllBtn')?.addEventListener('click', () => {
+                    const allFormatted = formattedNamesGlobal.map(item => item.formatted).join('\n');
+                    navigator.clipboard.writeText(allFormatted)
+                        .then(() => alert('Nombres copiados al portapapeles!'))
+                        .catch(err => console.error('Error al copiar: ', err));
+                });
+                
+                // Agregar evento al botón de exportar Excel
+                document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
+            }
+
+            function exportToExcel() {
+                if (formattedNamesGlobal.length === 0) {
+                    alert('No hay nombres formateados para exportar');
+                    return;
+                }
+
+                // Crear hoja de trabajo con dos columnas
+                const wsData = [
+                    ['Nombre Original', 'Nombre Alterado'], // Encabezados
+                    ...formattedNamesGlobal.map(item => [item.original, item.formatted]) // Datos
+                ];
+                
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                
+                // Ajustar el ancho de las columnas
+                ws['!cols'] = [
+                    { wch: Math.max(...formattedNamesGlobal.map(item => item.original.length)) },
+                    { wch: Math.max(...formattedNamesGlobal.map(item => item.formatted.length)) }
+                ];
+                
+                // Crear libro de trabajo
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Nombres Formateados");
+                
+                // Exportar archivo
+                const fileName = 'nombres_formateados.xlsx';
+                XLSX.writeFile(wb, fileName);
+            }
+
+            function clearAll(inputElement, statsElement, detailsElement) {
+                inputElement.value = '';
+                statsElement.innerHTML = '';
+                detailsElement.innerHTML = '';
+                inputElement.focus();
+                formattedNamesGlobal = [];
+            }
+        });
+    </script>
+</body>
+</html>
